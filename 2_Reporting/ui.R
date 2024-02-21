@@ -621,8 +621,8 @@ ui <- dashboardPage(
      pickerInput(
        inputId = "rp_rt_surv_cdm",
        label = "Database",
-       choices = "Barts Health",
-       selected = "Barts Health",
+       choices = sort(unique(rp_rt_survival_summary$cdm_name)),
+       selected = sort(unique(rp_rt_survival_summary$cdm_name)),
        options = list(`actions-box` = TRUE, size = 10, `selected-text-format` = "count > 3"),
        multiple = TRUE
      )
@@ -666,9 +666,29 @@ ui <- dashboardPage(
    tabsetPanel(
      type = "tabs",
      tabPanel(
-       "365 day cumulative incidence",
+       "Cumulative incidence at follow up",
+       p("Days after index date"),
+       div(
+         style = "display: inline-block;vertical-align:top; width: 150px;",
+         pickerInput(
+           inputId = "rp_rt_day_choice",
+           label = "Days after index date",
+           choices = sort(as.numeric(unique(rp_rt_survival_at_time_points$time))),
+           selected = 365,
+           options = list(`actions-box` = TRUE, size = 10, `selected-text-format` = "count > 3"),
+           multiple = TRUE
+         )
+       ),
        tags$hr(),
-       DT::dataTableOutput("dt_rp_rt_365_day") %>%
+       DT::dataTableOutput("dt_rp_rt_day") %>%
+         withSpinner()
+     ), 
+     tabPanel(
+       "Survival plot",
+       plotlyOutput(
+         "plot_rp_rt_surv",
+         height = "800px"
+       ) %>%
          withSpinner()
      )
 

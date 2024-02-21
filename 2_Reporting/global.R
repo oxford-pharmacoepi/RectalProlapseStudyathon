@@ -168,11 +168,9 @@ for(i in seq_along(rp_rt_survival_estimates_files)){
   if(nrow(rp_rt_survival_estimates[[i]]) ==0){
     rp_rt_survival_estimates[[i]] <- NULL
   }
-  
-  
 }
 rp_rt_survival_estimates <- dplyr::bind_rows(rp_rt_survival_estimates)
-rp_rt_survival_estimates <- visOmopResults::splitAdditional(rp_rt_survival_estimates)
+
 
 # rectal prolapse to rectopexy complications: survival_events ----
 rp_rt_survival_events_files<-results[stringr::str_detect(results, ".csv")]
@@ -183,7 +181,6 @@ for(i in seq_along(rp_rt_survival_events_files)){
                                            show_col_types = FALSE) 
 }
 rp_rt_survival_events <- dplyr::bind_rows(rp_rt_survival_events)
-rp_rt_survival_events <- visOmopResults::splitAdditional(rp_rt_survival_events)
 
 # rectal prolapse to rectopexy complications: survival_summary ----
 rp_rt_survival_summary_files<-results[stringr::str_detect(results, ".csv")]
@@ -195,30 +192,32 @@ for(i in seq_along(rp_rt_survival_summary_files)){
                                             show_col_types = FALSE) 
 }
 rp_rt_survival_summary <- dplyr::bind_rows(rp_rt_survival_summary)
+# rp_rt_survival_summary <- visOmopResults::splitAdditional(rp_rt_survival_summary)
 
 # combined survival results: 365 days -----
-rp_rt_365_day <- rp_rt_survival_summary %>%
-  filter(estimate_type == "Survival summary") %>% 
-  filter(estimate_name %in%  c("number_records", "events")) %>% 
+rp_rt_survival_estimates_2 <-  visOmopResults::splitAdditional(rp_rt_survival_estimates) %>% 
+  filter(estimate_type == "Cumulative failure probability") %>% 
   pivot_wider(names_from = estimate_name,
               values_from = estimate_value) %>% 
-  left_join(rp_rt_survival_estimates %>%  
-              filter(time == 365) %>% 
-              filter(estimate_type == "Cumulative failure probability") %>% 
-              pivot_wider(names_from = estimate_name,
-                          values_from = estimate_value)) 
+  mutate(cumulative_incidence = paste0(round(estimate,2)*100, "% (",
+                                       round(estimate_95CI_lower*100,2), "% to ",
+                                      round(estimate_95CI_upper,2), "%)"))
 
-# select(!c("group_name", "estimate_type", "additional_name",
-#           "result_type", "additional_level", "outcome")) %>% 
 
-rp_rt_365_day<-rp_rt_365_day %>% 
-  mutate(cumulative_incidence = paste0(estimate*100, "% (",
-                                       estimate_95CI_lower*100, "% to ",
-                                       estimate_95CI_upper, "%)")) %>% 
-  select(c("cdm_name","group_level","strata_name","strata_level",       
-           "variable_level", "number_records", "events",    
-           "cumulative_incidence"))
+rp_rt_survival_summary_2 <-  visOmopResults::splitAdditional(rp_rt_survival_events) %>% 
+  pivot_wider(names_from = estimate_name,
+              values_from = estimate_value) %>%
+  select(!"estimate_type")
 
-rp_rt_365_day<-rp_rt_365_day %>% 
-  filter(events > 5)
+rp_rt_survival_at_time_points <-rp_rt_survival_summary_2 %>% 
+  left_join(rp_rt_survival_estimates_2)
 
+survial_at_time_point <- function(days){
+  rp_rt_survival_at_time_points %>% 
+    filter(time %in%  c(days)) %>% 
+    select(c("cdm_name","group_level","strata_name","strata_level",       
+             "variable_level", "time" ,
+             "n_risk", "n_events",    
+             "cumulative_incidence")) %>% 
+    filter(n_events > 5)
+}

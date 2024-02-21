@@ -218,6 +218,21 @@ server <- function(input, output, session) {
   ### plot
   output$rp_incidence_estimates_plot <- renderPlotly({
     plot_rp_incidence()
+    
+    table <- getrp_incidence()
+    validate(need(nrow(table) > 0, "No results for selected inputs"))
+    class(table) <- c("IncidenceResult", "IncidencePrevalenceResult", class(table))
+    plotIncidence(
+      table,
+      x = input$rp_incidence_estimates_plot_x,
+      ylim = c(0, NA),
+      facet = input$rp_incidence_estimates_plot_facet,
+      colour = input$rp_incidence_estimates_plot_colour,
+      colour_name = paste0(input$rp_incidence_estimates_plot_colour, collapse = "; "),
+      ribbon = FALSE
+    )
+    
+    
   })
   
   
@@ -414,8 +429,8 @@ server <- function(input, output, session) {
   
   
   
-  # rp_rt_365_day ------
-  get_rp_rt_365_day <- reactive({
+  # rp_rt_day ------
+  get_rp_rt_day <- reactive({
     
     validate(
       need(input$rp_rt_surv_cdm != "", "Please select a database")
@@ -424,19 +439,26 @@ server <- function(input, output, session) {
       need(input$rp_rt_surv_cohort != "", "Please select a cohort")
     )
     
-    rp_rt_365_day %>% 
+    survial_at_time_point(as.character(input$rp_rt_day_choice)) %>% 
       filter(cdm_name %in% input$rp_rt_surv_cdm) %>% 
       filter(group_level %in% input$rp_rt_surv_cohort) %>% 
       filter(strata_name %in% input$rp_rt_surv_strata_name) %>% 
       filter(strata_level %in% input$rp_rt_surv_strata_level)
+    
   })
   
-  output$dt_rp_rt_365_day  <- DT::renderDataTable({
-    table_data <- get_rp_rt_365_day()
+  output$dt_rp_rt_day  <- DT::renderDataTable({
+    table_data <- get_rp_rt_day()
     datatable(table_data, rownames= FALSE) 
   })  
   
   
 
+  # survival plot -----
+  get_surv_plot_data <- reactive({ })
+  
+  plot_rp_rt_surv <- renderPlotly({
+    CohortSurvival::plotCumulativeIncidence(plot_data)
+  })
 }
 
