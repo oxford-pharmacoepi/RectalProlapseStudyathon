@@ -210,14 +210,23 @@ cdm$rectal_prolapse_study <- cdm$rectal_prolapse_study %>%
     c(85,94),
     c(95,150)))
 
+cdm$rectal_prolapse_study_surv <- cdm$rectal_prolapse_study %>%
+  addCohortIntersectDays(targetCohortTable = "rectopexy") %>%
+  filter(is.na(rectopexy_broad_0_to_inf) |
+         rectopexy_broad_0_to_inf != 0 ) %>%
+  select(!c("rectopexy_narrow_0_to_inf",
+            "rectopexy_broad_0_to_inf"))
+
+
 surv <- estimateSingleEventSurvival(cdm = cdm,
-                                    targetCohortTable = "rectal_prolapse_study",
+                                    targetCohortTable = "rectal_prolapse_study_surv",
                                     outcomeCohortTable = "rectopexy",
                                     strata = list(c("age_group"),
                                                   c("sex"),
                                                   c("age_group", "sex")),
                                     estimateGap = 1,
-                                    eventGap = 365)
+                                    eventGap = 365,
+                                    followUpDays = 1825)
 
 write_csv(surv,
           here("results", paste0(
@@ -253,3 +262,4 @@ cli::cli_alert_success("Cohort diagnostics finished")
 cli::cli_alert_success(glue::glue(
   "Study code ran in {floor(dur/60)} min and {dur %% 60 %/% 1} sec"
 ))
+

@@ -219,5 +219,6 @@ survial_at_time_point <- function(days){
              "variable_level", "time" ,
              "n_risk", "n_events",    
              "cumulative_incidence")) %>% 
-    filter(n_events > 5)
+    mutate(cumulative_incidence = if_else(is.na(n_events),
+                                            NA, cumulative_incidence))
 }
