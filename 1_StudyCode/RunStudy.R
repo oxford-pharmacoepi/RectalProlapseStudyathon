@@ -27,7 +27,7 @@ rt_cs <- codesFromConceptSet(
 study_cs <- list_flatten(list(rp_cs, rt_cs))
 
 # instantiate cohorts -------
-cli::cli_text("- Instantiating rectal prolapse cohorts ({Sys.time()})")
+cli::cli_text("- Instantiating rectal prolapse cohort ({Sys.time()})")
 cdm <- CDMConnector::generateConceptCohortSet(cdm,
                                               conceptSet = rp_cs,
                                               limit = "first",

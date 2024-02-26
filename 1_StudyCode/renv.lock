@@ -135,9 +135,9 @@
     },
     "IncidencePrevalence": {
       "Package": "IncidencePrevalence",
-      "Version": "0.7.0",
+      "Version": "0.7.1",
       "Source": "Repository",
-      "Repository": "CRAN",
+      "Repository": "RSPM",
       "Requirements": [
         "CDMConnector",
         "DBI",
@@ -161,7 +161,7 @@
         "tidyselect",
         "zip"
       ],
-      "Hash": "cf30b6c4be4dd1ad76d43bb776573c15"
+      "Hash": "62820c1d0fab4a16e87efe668b5ff78d"
     },
     "MASS": {
       "Package": "MASS",
